@@ -13,6 +13,7 @@
     "watch": "bun run index.js --watch"
   },
   "dependencies": {
+    "connect": "^3.7.0",
     "picocolors": "^1.0.0"
   }
 }
