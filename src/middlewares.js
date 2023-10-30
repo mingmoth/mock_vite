@@ -1,5 +1,12 @@
 import path from "path"
-import { getFilePathAndContentType } from "./utils.js"
+import {
+    getEntryPoint,
+    getFilePathAndContentType
+} from "./utils.js"
+
+const excludeFileList = [
+    "/src/client.js",
+]
 
 const indexHTMLMiddleware = async (req, res) => {
     try {
@@ -30,6 +37,26 @@ const indexHTMLMiddleware = async (req, res) => {
     }
 }
 
+const replaceImportMiddleware = async (req, res, next) => {
+    const { url } = req
+    if(url.endsWith(".js") && !excludeFileList.includes(url)) {
+        const { filePath, contentType } = getFilePathAndContentType(url)
+        const file = Bun.file(filePath)
+        let content = await file.text()
+
+        const regex = /from ['"](?!\.\/)([^'"]+)['"]/g
+
+        content = content.replace(regex, `from "../node_modules/$1"`)
+
+        res.writeHead(200, {
+            "Content-Type": contentType
+        })
+        res.end(content)
+    }
+    next()
+}
+
 export {
-    indexHTMLMiddleware
+    indexHTMLMiddleware,
+    replaceImportMiddleware
 }
