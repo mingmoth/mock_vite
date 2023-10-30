@@ -46,9 +46,25 @@ const replaceImportMiddleware = async (req, res, next) => {
 
         const regex = /from ['"](?!\.\/)([^'"]+)['"]/g
 
+        // pre-bundling
+        const matches = content.match(regex)
+        if(matches) {
+            const mod_regex = /from ['"](?!\.\/)([^'"]+)['"]/
+            const modules = matches
+                .map(m => {
+                    return m.match(mod_regex)[1]
+                })
+                .map(getEntryPoint)
+
+            Bun.build({
+                entrypoints: modules.map(m => `././node_modules/${m}`),
+                outdir: "././node_modules/.vite/deps",
+            })
+        }
+
         content = content.replace(regex, (_match, capture) => {
             const entryPoint = getEntryPoint(capture)
-            return `from "../node_modules/${entryPoint}"`
+            return `from "../node_modules/.vite/deps/${entryPoint}"`
         })
 
         res.writeHead(200, {
