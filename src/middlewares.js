@@ -46,7 +46,10 @@ const replaceImportMiddleware = async (req, res, next) => {
 
         const regex = /from ['"](?!\.\/)([^'"]+)['"]/g
 
-        content = content.replace(regex, `from "../node_modules/$1"`)
+        content = content.replace(regex, (_match, capture) => {
+            const entryPoint = getEntryPoint(capture)
+            return `from "../node_modules/${entryPoint}"`
+        })
 
         res.writeHead(200, {
             "Content-Type": contentType

@@ -1,4 +1,4 @@
-import { file } from "bun"
+import fs from "fs"
 import path from "path"
 
 const ContentTypes = {
@@ -25,6 +25,18 @@ function getFilePathAndContentType (filename) {
     }
 }
 
+function getEntryPoint(module) {
+    if(!module.endsWith('.js')) {
+        const packageFile = `node_modules/${module}/package.json`
+        const content = fs.readFileSync(packageFile, 'utf-8')
+        const { main } = JSON.parse(content)
+
+        return `${module}/${main}`
+    }
+    return module
+}
+
 export {
+    getEntryPoint,
     getFilePathAndContentType
 }
